@@ -1,15 +1,16 @@
 package kr.java.restapi.controller;
 
+import jakarta.validation.Valid;
 import kr.java.restapi.model.dto.ItemCreateRequest;
 import kr.java.restapi.model.dto.ItemResponse;
+import kr.java.restapi.model.dto.ItemUpdateRequest;
 import kr.java.restapi.service.ItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 // #(1)
 //@Controller // String -> view를 return
@@ -38,14 +39,13 @@ public class ItemApiController {
 
     // https://developer.mozilla.org/ko/docs/Web/HTTP/Reference/Status
     // https://http.cat/
+    // 항목 추가
     @PostMapping // ("/api/items")
     // request <- name, price, description
 //    @ResponseStatus(HttpStatus.CREATED) // 하나의 메서드가 다양한 status를 가져야한다면?
 //    public ItemResponse create(
     public ResponseEntity<ItemResponse> create(
-            // body -> parameter
-            @RequestBody ItemCreateRequest request
-//            , HttpServletResponse response
+            @Valid @RequestBody ItemCreateRequest request
     ) {
 //        response.setStatus(201); // 패러미터가 지저분해짐.
 //        return itemService.create(request);
@@ -55,5 +55,53 @@ public class ItemApiController {
 //                        .status(201)
                         .status(HttpStatus.CREATED)
                         .body(response);
+    }
+
+    // 전체 읽기
+    @GetMapping // ("/api/items")
+    public ResponseEntity<List<ItemResponse>> findAll() {
+        List<ItemResponse> response = itemService.findAll();
+//        return ResponseEntity
+//                .status(200)
+//                .status(HttpStatus.OK)
+//                .body(response);
+        return ResponseEntity.ok(response);
+    }
+
+    // 개별 읽기
+    @GetMapping("/{id}") // /api/items/{id}
+    public ResponseEntity<ItemResponse> findById(@PathVariable Long id) {
+        ItemResponse response = itemService.findById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    // https://developer.mozilla.org/ko/docs/Web/HTTP/Reference/Methods
+    @DeleteMapping("/{id}") // /api/items/{id}
+    // -> Body X.
+    // RestfulAPI -> Model X. Model, ModelAttribute -> Restful API X.
+    // RequestParm (queryString), RequestBody (body)
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        itemService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}") // /api/items/{id}
+    public ResponseEntity<ItemResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody ItemUpdateRequest request
+    ) {
+        ItemResponse response = itemService.update(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/name")
+    public ResponseEntity<ItemResponse> patch(
+            @PathVariable Long id,
+            @RequestParam String name
+    ) {
+        ItemResponse oldItem = itemService.findById(id);
+        ItemUpdateRequest request = new ItemUpdateRequest(name, oldItem.price(), oldItem.description());
+        ItemResponse response = itemService.update(id, request);
+        return ResponseEntity.ok(response);
     }
 }
