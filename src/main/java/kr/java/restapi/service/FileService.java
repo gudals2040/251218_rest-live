@@ -3,6 +3,8 @@ package kr.java.restapi.service;
 import jakarta.annotation.PostConstruct;
 import kr.java.restapi.model.dto.FileResponse;
 import kr.java.restapi.model.entity.FileEntity;
+import kr.java.restapi.model.exception.BadRequestException;
+import kr.java.restapi.model.exception.NotFoundException;
 import kr.java.restapi.model.repository.FileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +22,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
 
@@ -60,12 +61,16 @@ public class FileService {
 
     // 파일 검증
     private void validateFile(MultipartFile file) {
+        // #(3)-7-1
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("파일이 비어있습니다");
+//            throw new IllegalArgumentException("파일이 비어있습니다");
+            throw new BadRequestException("파일이 비어있습니다");
         }
         String contentType = file.getContentType();
+        // #(3)-7-2
         if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
-            throw new IllegalArgumentException("허용되지 않는 파일 형식");
+//            throw new IllegalArgumentException("허용되지 않는 파일 형식");
+            throw new BadRequestException("허용되지 않는 파일 형식");
         }
     }
 
@@ -122,9 +127,13 @@ public class FileService {
             if (resource.exists() && resource.isReadable()) {
                 return resource;
             }
-            throw new NoSuchElementException("파일 경로 오류: " + fileId);
+            // #(3)-8-1
+//            throw new NoSuchElementException("파일이 존재하지 않습니다 : " + fileId);
+            throw NotFoundException.forFile(fileId);
         } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("파일 경로 오류: " + fileId);
+            // #(3)-8-2
+//            throw new IllegalArgumentException("파일 경로 오류: " + fileId);
+            throw new BadRequestException("파일 경로 오류: " + fileId);
         }
     }
 
@@ -132,7 +141,9 @@ public class FileService {
     // 조회 메서드
     public FileEntity findById(Long id) {
         return fileRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("파일이 존재하지 않습니다: " + id));
+                // #(3)-9
+//                .orElseThrow(() -> new NoSuchElementException("파일이 존재하지 않습니다: " + id));
+                .orElseThrow(() -> NotFoundException.forFile(id));
     }
     // 전체 조회 메서드
     public List<FileResponse> findAll() {
