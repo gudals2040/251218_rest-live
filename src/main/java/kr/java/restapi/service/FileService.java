@@ -7,15 +7,20 @@ import kr.java.restapi.model.repository.FileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
 
@@ -101,5 +106,39 @@ public class FileService {
         } catch (IOException e) {
             throw new RuntimeException("파일 저장 실패", e);
         }
+    }
+
+    // #(2)-6
+    // 다운로드 -> 파일 리소스 -> 로드해서 controller
+    // import org.springframework.core.io.Resource;
+    public Resource loadAsResource(Long fileId) {
+//        FileEntity fileEntity = fileRepository.findById(fileId)
+//                .orElseThrow(() -> new NoSuchElementException("파일이 존재하지 않습니다: " + fileId));
+        FileEntity fileEntity = findById(fileId);
+        try {
+            Path filePath = Paths.get(fileEntity.getFilePath());
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                return resource;
+            }
+            throw new NoSuchElementException("파일 경로 오류: " + fileId);
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("파일 경로 오류: " + fileId);
+        }
+    }
+
+    // #(2)-7
+    // 조회 메서드
+    public FileEntity findById(Long id) {
+        return fileRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("파일이 존재하지 않습니다: " + id));
+    }
+    // 전체 조회 메서드
+    public List<FileResponse> findAll() {
+        return fileRepository.findAll().stream()
+//                .map(el -> FileResponse.from(el))
+                .map(FileResponse::from)
+                .toList();
     }
 }
