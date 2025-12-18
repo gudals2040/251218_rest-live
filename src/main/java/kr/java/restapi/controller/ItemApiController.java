@@ -1,15 +1,15 @@
 package kr.java.restapi.controller;
 
+import kr.java.restapi.model.dto.ItemCreateRequest;
 import kr.java.restapi.model.dto.ItemResponse;
 import kr.java.restapi.service.ItemService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.Instant;
 
 // #(1)
 //@Controller // String -> view를 return
@@ -35,4 +35,25 @@ public class ItemApiController {
 //        public ItemResponse item() { // class, record -> 객체 -> JSON
 //            return new ItemResponse(1L, "1", 1, "1", Instant.now(), Instant.now());
 //        }
+
+    // https://developer.mozilla.org/ko/docs/Web/HTTP/Reference/Status
+    // https://http.cat/
+    @PostMapping // ("/api/items")
+    // request <- name, price, description
+//    @ResponseStatus(HttpStatus.CREATED) // 하나의 메서드가 다양한 status를 가져야한다면?
+//    public ItemResponse create(
+    public ResponseEntity<ItemResponse> create(
+            // body -> parameter
+            @RequestBody ItemCreateRequest request
+//            , HttpServletResponse response
+    ) {
+//        response.setStatus(201); // 패러미터가 지저분해짐.
+//        return itemService.create(request);
+            ItemResponse response = itemService.create(request);
+        return
+                ResponseEntity
+//                        .status(201)
+                        .status(HttpStatus.CREATED)
+                        .body(response);
+    }
 }
