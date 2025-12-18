@@ -73,7 +73,21 @@ public class ItemApiController {
     public ResponseEntity<ItemResponse> findById(@PathVariable Long id) {
         ItemResponse response = itemService.findById(id);
         return ResponseEntity.ok(response);
+//        try {
+//            ItemResponse response = itemService.findById(id);
+//            return ResponseEntity.ok(response);
+//        } catch (NotFoundException e) {
+//           return ResponseEntity.notFound().build();
+//        }
     }
+
+//    @ExceptionHandler(NotFoundException.class)
+//    public ResponseEntity<ErrorResponse> notFound(NotFoundException e,
+//                                                  HttpServletRequest request) {
+//        return ResponseEntity
+//                .status(HttpStatus.NOT_FOUND)
+//                .body(ErrorResponse.of(404, e.getMessage(), request.getRequestURI()));
+//    }
 
     // https://developer.mozilla.org/ko/docs/Web/HTTP/Reference/Methods
     @DeleteMapping("/{id}") // /api/items/{id}
