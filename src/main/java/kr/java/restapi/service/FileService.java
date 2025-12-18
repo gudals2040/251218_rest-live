@@ -96,7 +96,7 @@ public class FileService {
                     .fileSize(file.getSize())
                     .filePath(filePath.toString())
                     .build();
-            return FileResponse.from(fileEntity);
+            return FileResponse.from(fileRepository.save(fileEntity));
 
         } catch (IOException e) {
             throw new RuntimeException("파일 저장 실패", e);
